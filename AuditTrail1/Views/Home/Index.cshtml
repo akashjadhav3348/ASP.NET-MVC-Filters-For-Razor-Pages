@@ -1,0 +1,46 @@
+﻿@model IEnumerable<AuditTrail1.Models.AuditTrail>
+@{
+    ViewData["Title"] = "Audit Trail";
+}
+
+<h2>Audit Trail</h2>
+
+<form method="get" class="mb-3">
+    <input type="text" name="userName" placeholder="User Name" />
+    <input type="text" name="module" placeholder="Module" />
+    <input type="date" name="startDate" />
+    <input type="date" name="endDate" />
+    <button type="submit">Filter</button>
+</form>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Module</th>
+            <th>Action</th>
+            <th>Timestamp</th>
+        </tr>
+    </thead>
+  <tbody>
+    @if (Model != null && Model.Any())
+    {
+        foreach (var log in Model)
+        {
+            <tr>
+                <td>@log.UserName</td>
+                <td>@log.Module</td>
+                <td>@log.Action</td>
+                <td>@log.Timestamp</td>
+            </tr>
+        }
+    }
+    else
+    {
+        <tr>
+            <td colspan="4">No logs found.</td>
+        </tr>
+    }
+</tbody>
+
+</table>

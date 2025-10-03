@@ -1,0 +1,454 @@
+﻿@model IEnumerable<AuditTrail1.Models.AuditTrail>
+@{
+    ViewData["Title"] = "Audit Trail";
+}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: white;
+        color: black;
+    }
+
+    .audit-container {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .audit-header {
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid black;
+    }
+
+        .audit-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+    .filter-card {
+        background: white;
+        padding: 15px;
+        border: 1px solid #ddd;
+        margin-bottom: 20px;
+    }
+
+    .filter-header {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+        .filter-header h5 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+    .custom-select-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .custom-select-trigger {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px;
+        border: 1px solid #ccc;
+        background: white;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+        .custom-select-trigger:hover {
+            border-color: #999;
+        }
+
+    .selected-text {
+        flex: 1;
+        color: black;
+    }
+
+    .dropdown-arrow {
+        margin-left: 10px;
+        font-size: 10px;
+    }
+
+    .custom-select-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ccc;
+        border-top: none;
+        max-height: 0;
+        overflow: hidden;
+        z-index: 1000;
+        transition: max-height 0.2s;
+    }
+
+        .custom-select-dropdown.show {
+            max-height: 250px;
+            border-top: 1px solid #ccc;
+            margin-top: 2px;
+        }
+
+    .search-input {
+        width: 100%;
+        padding: 8px;
+        border: none;
+        border-bottom: 1px solid #ddd;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .options-list {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .custom-select-option {
+        padding: 8px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+        .custom-select-option:hover {
+            background: #f5f5f5;
+        }
+
+        .custom-select-option.selected {
+            background: #e0e0e0;
+            font-weight: bold;
+        }
+
+        .custom-select-option.hidden {
+            display: none;
+        }
+
+    .form-label {
+        font-size: 14px;
+        margin-bottom: 5px;
+        display: block;
+        font-weight: bold;
+    }
+
+    .form-control {
+        padding: 8px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        width: 100%;
+    }
+
+    .btn-filter {
+        width: 100%;
+        padding: 10px;
+        background: white;
+        color: black;
+        border: 1px solid black;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+        .btn-filter:hover {
+            background: #f0f0f0;
+        }
+
+        .btn-filter:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .table-card {
+        background: white;
+        border: 1px solid #ddd;
+        overflow: hidden;
+    }
+
+    .audit-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .audit-table thead {
+            background: #f5f5f5;
+            border-bottom: 2px solid black;
+        }
+
+        .audit-table th,
+        .audit-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .audit-table th {
+            font-weight: bold;
+        }
+
+        .audit-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+    .no-data {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+    }
+
+    .options-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .options-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .options-list::-webkit-scrollbar-thumb {
+        background: #888;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -10px;
+    }
+
+    .col-md-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+        padding: 10px;
+    }
+
+    .col-12 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding: 10px;
+    }
+</style>
+
+<div class="audit-container">
+    <!-- Header -->
+    <div class="audit-header">
+        <h2>Audit Trail</h2>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-card">
+        <div class="filter-header">
+            <h5>Filter Records</h5>
+        </div>
+        <form method="get" id="filterForm">
+            <div class="row">
+                <!-- User Dropdown -->
+                <div class="col-md-3">
+                    <label class="form-label">User</label>
+                    <div class="custom-select-wrapper">
+                        <div class="custom-select-trigger" tabindex="0">
+                            <span class="selected-text">-- All Users --</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </div>
+                        <div class="custom-select-dropdown">
+                            <input type="text" class="search-input" placeholder="Search users..." />
+                            <div class="options-list">
+                                <div class="custom-select-option" data-value="">-- All Users --</div>
+                                @foreach (var user in ViewBag.Users as List<string>)
+                                {
+                                    <div class="custom-select-option @(user == (string)ViewBag.UserName ? "selected" : "")"
+                                         data-value="@user">
+                                        @user
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <input type="hidden" name="userName" value="@ViewBag.UserName" />
+                    </div>
+                </div>
+
+                <!-- Module Dropdown -->
+                <div class="col-md-3">
+                    <label class="form-label">Module</label>
+                    <div class="custom-select-wrapper">
+                        <div class="custom-select-trigger" tabindex="0">
+                            <span class="selected-text">-- All Modules --</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </div>
+                        <div class="custom-select-dropdown">
+                            <input type="text" class="search-input" placeholder="Search modules..." />
+                            <div class="options-list">
+                                <div class="custom-select-option" data-value="">-- All Modules --</div>
+                                @foreach (var mod in ViewBag.Modules as List<string>)
+                                {
+                                    <div class="custom-select-option @(mod == (string)ViewBag.Module ? "selected" : "")"
+                                         data-value="@mod">
+                                        @mod
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <input type="hidden" name="module" value="@ViewBag.Module" />
+                    </div>
+                </div>
+
+                <!-- Dates -->
+                <div class="col-md-3">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" id="startDate" name="startDate" class="form-control" value="@ViewBag.StartDate" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">End Date</label>
+                    <input type="date" id="endDate" name="endDate" class="form-control" value="@ViewBag.EndDate" />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn-filter">Apply Filters</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+        <table class="audit-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Module</th>
+                    <th>Action</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int counter = 1; // Start ID from 1
+                }
+
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var log in Model)
+                    {
+                        <tr>
+                            <td>@counter</td> <!-- Use counter instead of log.Id -->
+                            <td>@log.UserName</td>
+                            <td>@log.Module</td>
+                            <td>@log.Action</td>
+                            <td>@log.Timestamp.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                        </tr>
+                        counter++;
+
+                        <!-- Increment counter for next row -->
+                    }
+                }
+
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="no-data">No audit logs found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const customSelects = document.querySelectorAll('.custom-select-wrapper');
+
+        customSelects.forEach(wrapper => {
+            const trigger = wrapper.querySelector('.custom-select-trigger');
+            const dropdown = wrapper.querySelector('.custom-select-dropdown');
+            const options = wrapper.querySelectorAll('.custom-select-option');
+            const searchInput = wrapper.querySelector('.search-input');
+            const hiddenInput = wrapper.querySelector('input[type="hidden"]');
+            const selectedText = wrapper.querySelector('.selected-text');
+
+            const initialValue = hiddenInput.value;
+            if (initialValue) {
+                options.forEach(option => {
+                    if (option.dataset.value === initialValue) {
+                        selectedText.textContent = option.textContent;
+                        option.classList.add('selected');
+                    }
+                });
+            }
+
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeAllDropdowns();
+                dropdown.classList.toggle('show');
+                if (dropdown.classList.contains('show')) {
+                    searchInput.focus();
+                }
+            });
+
+            options.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedText.textContent = this.textContent;
+                    hiddenInput.value = this.dataset.value;
+                    dropdown.classList.remove('show');
+                });
+            });
+
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        option.classList.remove('hidden');
+                    } else {
+                        option.classList.add('hidden');
+                    }
+                });
+            });
+
+            dropdown.addEventListener('transitionend', function() {
+                if (!dropdown.classList.contains('show')) {
+                    searchInput.value = '';
+                    options.forEach(option => option.classList.remove('hidden'));
+                }
+            });
+        });
+
+        document.addEventListener('click', function() {
+            closeAllDropdowns();
+        });
+
+        function closeAllDropdowns() {
+            document.querySelectorAll('.custom-select-dropdown').forEach(dropdown => {
+                dropdown.classList.remove('show');
+            });
+        }
+
+        const form = document.getElementById('filterForm');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const submitBtn = form.querySelector('.btn-filter');
+
+        form.addEventListener('submit', function(e) {
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+
+            if (startDate && endDate) {
+                if (new Date(startDate) > new Date(endDate)) {
+                    e.preventDefault();
+                    alert('Start date cannot be after end date!');
+                    return false;
+                }
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Loading...';
+
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Apply Filters';
+            }, 2000);
+        });
+    });
+</script>
